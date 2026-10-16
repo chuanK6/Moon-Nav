@@ -1,0 +1,17 @@
+name = "moon-navigation"
+compatibility_date = "2026-10-16"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "moon-navigation"
+# 部署前替换为正式库 UUID。
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "moon-navigation-preview"
+# 部署前替换为独立的预览库 UUID，不能使用正式库。
+database_id = "00000000-0000-0000-0000-000000000001"
+migrations_dir = "migrations"

@@ -8,6 +8,10 @@ import { SiteIcon } from '../components/SiteIcon';
 import { SiteForm } from '../components/SiteForm';
 import { Modal } from '../components/Modal';
 
+function normalizeSearchText(value: string) {
+  return value.normalize('NFKC').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 type Confirm = { title: string; detail: string; action: () => Promise<unknown> };
 export default function Admin() {
   const queryClient = useQueryClient();
@@ -43,7 +47,8 @@ export default function Admin() {
     setBusy(true); setError('');
     try { await confirm.action(); await refresh(); setConfirm(null); setToast('操作完成'); } catch (e) { setError(message(e)); } finally { setBusy(false); }
   }
-  const filtered = sites.filter(s => `${s.name} ${s.url} ${s.description}`.toLowerCase().includes(search.toLowerCase()) && (filter === 'all' || (filter === 'hidden' ? !s.is_visible : s.visibility === filter)) && (categoryFilter === 'all' || (s.category_id ?? 0) === Number(categoryFilter)));
+  const needle = normalizeSearchText(search);
+  const filtered = sites.filter(s => normalizeSearchText(`${s.name} ${s.url} ${s.description}`).includes(needle) && (filter === 'all' || (filter === 'hidden' ? !s.is_visible : s.visibility === filter)) && (categoryFilter === 'all' || (s.category_id ?? 0) === Number(categoryFilter)));
   const allSelected = filtered.length > 0 && filtered.every(s => selected.includes(s.id));
   const batch = (action: string, extra = {}) => write('/admin/sites/batch', 'POST', { action, ids: selected, ...extra });
   const loading = sitesQuery.isPending || categoriesQuery.isPending || me.isPending;

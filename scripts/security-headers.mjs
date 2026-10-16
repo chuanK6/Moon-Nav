@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
-import { THEME_SCRIPT, contentSecurityPolicy } from '../shared/security.ts';
+const THEME_SCRIPT = "try{document.documentElement.dataset.theme=localStorage.getItem('moon-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{document.documentElement.dataset.theme='light'}";
+function contentSecurityPolicy(hashes) {
+  return `default-src 'self'; script-src 'self' ${hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' https:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`;
+}
 
 const html = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
 const hashes = [...html.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)]

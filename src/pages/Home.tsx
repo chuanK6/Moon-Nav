@@ -6,6 +6,10 @@ import type { Category, Site } from '../../shared/schema';
 import { api, message } from '../lib/api';
 import { SiteCard } from '../components/SiteCard';
 
+function normalizeSearchText(value: string) {
+  return value.normalize('NFKC').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 export default function Home({ personal = false }: { personal?: boolean }) {
   const scope = personal ? 'admin' : 'public';
   const sitesQuery = useQuery({ queryKey: [scope, 'sites'], queryFn: () => api<Site[]>(`/${scope}/sites`), staleTime: personal ? 0 : 30_000 });
@@ -14,10 +18,13 @@ export default function Home({ personal = false }: { personal?: boolean }) {
   const [category, setCategory] = useState<number | 'all' | 'pinned'>('all');
   const sites = sitesQuery.data ?? [];
   const categories = categoriesQuery.data ?? [];
-  const filtered = useMemo(() => sites.filter(s => {
-    const match = `${s.name} ${s.description} ${s.url}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase());
+  const filtered = useMemo(() => {
+    const needle = normalizeSearchText(search);
+    return sites.filter(s => {
+    const match = normalizeSearchText(`${s.name} ${s.description} ${s.url}`).includes(needle);
     return match && (category === 'all' || (category === 'pinned' ? s.is_pinned === 1 : (s.category_id ?? 0) === category));
-  }), [sites, search, category]);
+  });
+  }, [sites, search, category]);
   const pinned = filtered.filter(s => s.is_pinned === 1);
   const groups = [...categories.map(c => ({ id: c.id, name: c.name })), { id: 0, name: '未分类' }].map(c => ({ ...c, sites: filtered.filter(s => (s.category_id ?? 0) === c.id && !s.is_pinned) })).filter(c => c.sites.length);
   const error = sitesQuery.error || categoriesQuery.error;

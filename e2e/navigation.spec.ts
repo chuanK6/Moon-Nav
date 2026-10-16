@@ -54,6 +54,13 @@ test('公开页搜索、分类、私有过滤与桌面布局', async ({ page }) 
   await expect(page.locator('.site-card')).toContainText('GitHub');
   await expect(page.locator('.site-card')).toHaveAttribute('rel', 'noopener noreferrer');
   await page.getByRole('button', { name: '清空搜索' }).click();
+  await page.getByRole('textbox', { name: '搜索网站', exact: true }).fill('p');
+  expect(await page.locator('.site-card').count()).toBeGreaterThan(0);
+  expect(await page.locator('.site-card').count()).toBeLessThan(18);
+  await page.getByRole('textbox', { name: '搜索网站', exact: true }).fill('c');
+  await expect.poll(() => page.locator('.site-card').count()).toBeGreaterThan(0);
+  expect(await page.locator('.site-card').count()).toBeLessThan(18);
+  await page.getByRole('button', { name: '清空搜索' }).click();
   await page.locator('.category-tabs').getByRole('button', { name: /AI 工具/ }).click();
   await expect(page.locator('.site-card')).toHaveCount(3);
   expect(errors).toEqual([]);
